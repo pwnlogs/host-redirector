@@ -30,3 +30,5 @@ If you want to test how your production session cookies behave on a QA environme
 2. Add `qa.app.com` as the Destination.
 3. Browse `https://prod.app.com` in your Burp-configured browser.
 4. Burp will automatically fetch data from `qa.app.com` while your browser still thinks it is communicating with production.
+
+![screenshot.png](screenshot.png)

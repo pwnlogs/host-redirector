@@ -72,7 +72,7 @@ public class Extension implements BurpExtension {
         // table
         String[] columns = {"Original host", "Target host"};
         Object[][] sampleData = {
-                {"production.pwnlogs.dev", "development.pwnlogs.dev"}
+                {"prod.app.com", "dev.app.com"}
         };
 
         tableModel = new DefaultTableModel(sampleData, columns);
