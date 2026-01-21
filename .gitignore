@@ -40,3 +40,7 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+### exclude test server
+test-server/cert.pem
+test-server/key.pem
