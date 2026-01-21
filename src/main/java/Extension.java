@@ -120,8 +120,9 @@ public class Extension implements BurpExtension {
         intruderCheckBox = new SourceToolCheckBox("Intruder", ToolType.INTRUDER, this);
         repeaterCheckBox = new SourceToolCheckBox("Repeater", ToolType.REPEATER, this);
         scannerCheckBox = new SourceToolCheckBox("Scanner", ToolType.SCANNER, this);
-        updateHeader = new JCheckBox("Update HTTP 'Host' header?\n(find & replace original host with destination host on Host header value");
+        updateHeader = new JCheckBox("Update HTTP 'Host' header?");
         updateHeader.addItemListener(e -> updateHeaderStatusUpdate(e.getStateChange() == ItemEvent.SELECTED));
+        JLabel updateHostHeaderHint = new JLabel("(Find & replace original host with destination host on the Host header value)");
 
         checkboxPanel.add(activateCheckBox);
         checkboxPanel.add(Box.createVerticalStrut(50));
@@ -136,6 +137,8 @@ public class Extension implements BurpExtension {
         checkboxPanel.add(scannerCheckBox);
         checkboxPanel.add(Box.createVerticalStrut(50));
         checkboxPanel.add(updateHeader);
+        checkboxPanel.add(Box.createVerticalStrut(2));
+        checkboxPanel.add(updateHostHeaderHint);
 
         // assembling the tab
         // -------------------
