@@ -13,6 +13,7 @@ public class SourceToolCheckBox extends JCheckBox {
         super(label);
         this.toolType = toolType;
         this.extension = extension;
+        this.setSelected(extension.isToolTypeEnabled.get(toolType));
         this.addItemListener(new ItemListener() {
             @Override
             public void itemStateChanged(ItemEvent e) {
