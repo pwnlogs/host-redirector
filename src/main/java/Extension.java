@@ -11,7 +11,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,13 +21,12 @@ public class Extension implements BurpExtension {
 
     public static String name = "Host Redirector";
     public static Logging logging;
-    private static final Pattern DOMAIN_PATTERN = Pattern.compile(
-            "^(?!-)[A-Za-z0-9-]+([\\-\\.]{1}[a-z0-9]+)*\\.[A-Za-z]{2,6}$"
-    );
 
     public boolean isActive = false;
     public List<String> srcHosts = new ArrayList<>();
     public List<String> dstHosts = new ArrayList<>();
+    public List<Pattern> srcPath = new ArrayList<>();
+    public int tableSize; // we prefill the table size to improve performance while matching
     public Map<ToolType, Boolean> isToolTypeEnabled = new HashMap<>() {{
         put(ToolType.PROXY, true);
         put(ToolType.INTRUDER, true);
@@ -48,7 +46,7 @@ public class Extension implements BurpExtension {
     private JCheckBox updateHeader;
     private JButton addButton;
     private JButton deleteButton;
-    private JTextArea infoText;
+    private JTextArea msgText;
 
     private RedirectHandler redirectHandler;
 
@@ -70,9 +68,14 @@ public class Extension implements BurpExtension {
         mainPanel = new JPanel(new BorderLayout());
 
         // table
-        String[] columns = {"Original host", "Target host"};
+        String[] columns = {"Source Host / IP", "Target Host / IP", "Source Path (regex)"};
         Object[][] sampleData = {
-                {"prod.app.com", "dev.app.com"}
+                {"sub1.dev.sbits.dev", "sub2.dev.sbits.dev", "/r1.*"},
+                {"sub2.dev.sbits.dev", "sub3.dev.sbits.dev", "/r2.*"},
+                {"sub3.dev.sbits.dev", "sub4.dev.sbits.dev", ""},
+                {"sub1.dev.sbits.dev", "sub4.dev.sbits.dev", ""},
+
+                {"prod.app.com", "dev.app.com", ""}
         };
 
         tableModel = new DefaultTableModel(sampleData, columns);
@@ -160,21 +163,21 @@ public class Extension implements BurpExtension {
         rightPanel.add(checkboxPanel);
 
         // ---- Multiline text area ----
-        infoText = new JTextArea(10, 20);
-        infoText.setLineWrap(true);
-        infoText.setWrapStyleWord(true);
-        infoText.setEditable(false);
-        infoText.setText("Extension not activated");
+        msgText = new JTextArea(10, 20);
+        msgText.setLineWrap(true);
+        msgText.setWrapStyleWord(true);
+        msgText.setEditable(false);
+        msgText.setText("Extension not activated");
 
-        JScrollPane textScrollPane = new JScrollPane(infoText);
-        textScrollPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+        JScrollPane msgScrollPane = new JScrollPane(msgText);
+        msgScrollPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
+        JPanel hintText = UiUtils.getHintText();
+        hintText.setBorder(new EmptyBorder(5, 5, 5, 5));
 
         // ---- Right wrapper (vertical layout) ----
         JPanel rightWrapper = new JPanel();
-        rightWrapper.setLayout(new BoxLayout(rightWrapper, BoxLayout.Y_AXIS));
-        rightWrapper.add(rightPanel);
-        rightWrapper.add(Box.createVerticalStrut(10));
-        rightWrapper.add(textScrollPane);
+        UiUtils.addLeftAlignVertical(rightWrapper, rightPanel, msgScrollPane, hintText);
 
         JPanel container = new JPanel(new BorderLayout());
         container.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -187,13 +190,14 @@ public class Extension implements BurpExtension {
     public void activate(boolean state) {
         if (state && syncHostLists() && setEditableTable(false)) {
             this.isActive = true;
-            setInfoText("Extension Active.\nDeactivate the extension to update the table.");
+            this.tableSize = this.srcHosts.size();
+            setMsgText("Extension Active.\nDeactivate the extension to update the table.");
             return;
         }
         this.isActive = false;
         this.activateCheckBox.setSelected(false);
         setEditableTable(true);
-        setInfoText("Extension not activated");;
+        setMsgText("Extension not activated");;
     }
 
     private boolean syncHostLists() {
@@ -204,17 +208,14 @@ public class Extension implements BurpExtension {
         for (int i = 0; i < rowCount; i++) {
             // source host
             Object value = tableModel.getValueAt(i, 0);
+            String host;
             if (value == null) {
                 UiUtils.showError("Null value at Original Host of row " + rowCount);
                 return false;
             }
-            String host = value.toString();
-            if (isNotValidDomain(host)) {
+            host = value.toString();
+            if (Utils.isNotValidDomainNorIP(host)) {
                 UiUtils.showError(host + " is not a valid domain.");
-                return false;
-            }
-            if (srcHosts.contains(host)) {
-                UiUtils.showError(host + " has duplicate entries.");
                 return false;
             }
             srcHosts.add(host);
@@ -222,25 +223,35 @@ public class Extension implements BurpExtension {
             // destination host
             value = tableModel.getValueAt(i, 1);
             if (value == null) {
-                UiUtils.showError("Null value at Original Host of row " + rowCount);
-                return false;
-            }
-            host = value.toString();
-            if (isNotValidDomain(host)) {
-                UiUtils.showError(host + " is not a valid domain.");
-                return false;
-            }
-            if (srcHosts.contains(host)) {
-                UiUtils.showError(host + " has duplicate entries.");
-                return false;
+                host = ""; // this match will be dropped
+            } else {
+                host = value.toString();
+                // either the host should be empty string - this will be dropped
+                // or the host should be a valid domain
+                if (!"".equals(host) && Utils.isNotValidDomainNorIP(host)) {
+                    UiUtils.showError(host + " is not a valid domain nor IP address.");
+                    return false;
+                }
             }
             dstHosts.add(host);
+
+            // source path
+            value = tableModel.getValueAt(i, 2);
+            String path;
+            Pattern pathPattern = null;
+            if (value != null) {
+                path = value.toString();
+                if (!"".equals(path)) {
+                    pathPattern = Utils.getRegex(path);
+                    if (pathPattern == null) {
+                        UiUtils.showError("\"" + path + "\" is not a valid regex pattern.\nPath should either be empty or a valid regex.");
+                        return false;
+                    }
+                }
+            }
+            srcPath.add(pathPattern);
         }
         return true;
-    }
-
-    private boolean isNotValidDomain(String host) {
-        return !DOMAIN_PATTERN.matcher(host).matches();
     }
 
     private boolean setEditableTable(boolean isEditable) {
@@ -250,12 +261,12 @@ public class Extension implements BurpExtension {
         return true;
     }
 
-    private void setInfoText(String text) {
-        infoText.setText(text);
+    private void setMsgText(String text) {
+        msgText.setText(text);
     }
 
     private void appendInfoText(String text) {
-        infoText.append("\n" + text);
+        msgText.append("\n" + text);
     }
 
     private void updateHeaderStatusUpdate(boolean isEnabled) {

@@ -2,6 +2,8 @@ import burp.api.montoya.http.HttpService;
 import burp.api.montoya.http.handler.*;
 import burp.api.montoya.http.message.requests.HttpRequest;
 
+import java.util.regex.Pattern;
+
 public class RedirectHandler implements HttpHandler {
 
     private final Extension extension;
@@ -24,15 +26,44 @@ public class RedirectHandler implements HttpHandler {
             // Source of the request is not enabled for redirection (Proxy, Repeater, etc.)
             return null;
         }
-        // At this stage, source of the redirection is supported, and enabled
+        // At this stage, source tool of the request is supported, and enabled
         // Check if the host of the request is in the list of hosts to be redirected
         HttpService srcHttpService = httpRequestToBeSent.httpService();
-        int indexOfHost = extension.srcHosts.indexOf(srcHttpService.host());
+        String reqHost = srcHttpService.host();
+        int indexOfHost = extension.srcHosts.indexOf(reqHost);
         if (indexOfHost < 0) {
             // host is not in the list of hosts to redirect
             return null;
         }
-        // Host needs to be redirected
+
+        // Host match found. Now find match for path
+        // Since host list is usually small, simple for loop is better for performance
+        // If the host list grows over 20, this may have a performance impact
+        int matchIndex = -1;
+        do {
+            Pattern pathPattern = extension.srcPath.get(indexOfHost);
+            if (pathPattern == null) {
+                // request should be redirected
+                matchIndex = indexOfHost;
+                break;
+            }
+            if (pathPattern.matcher(httpRequestToBeSent.path()).matches()) {
+                // request should be redirected
+                matchIndex = indexOfHost;
+                break;
+            }
+            for ( indexOfHost = indexOfHost + 1;
+                  indexOfHost < extension.tableSize && !reqHost.equals(extension.srcHosts.get(indexOfHost));
+                  indexOfHost++) {;}
+        } while (indexOfHost < extension.tableSize);
+
+        if (matchIndex == -1) {
+            // path match could not be found
+            return null;
+        }
+
+        // Hostname and path matched
+        // Host should be redirected
         String dstHost = extension.dstHosts.get(indexOfHost);
         HttpService dstHttpService = HttpService.httpService(dstHost, srcHttpService.port(), srcHttpService.secure());
         HttpRequest newReq = httpRequestToBeSent.withService(dstHttpService);
