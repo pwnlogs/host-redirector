@@ -82,7 +82,7 @@ public class Extension implements BurpExtension {
 
         // buttons
         JPanel buttonPanel = new JPanel();
-        buttonPanel.setBorder(new EmptyBorder(5, 5, 5, 20));
+        buttonPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
         buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
         // add button
         addButton = new JButton("Add");
@@ -107,7 +107,7 @@ public class Extension implements BurpExtension {
         // checklist
         JPanel checkboxPanel = new JPanel();
         checkboxPanel.setLayout(new BoxLayout(checkboxPanel, BoxLayout.Y_AXIS));
-        checkboxPanel.setBorder(new EmptyBorder(5, 20, 5, 100));
+        checkboxPanel.setBorder(new EmptyBorder(5, 20, 5, 5));
         JLabel checklistLabel = new JLabel("Enable for:");
         checklistLabel.setFont(checklistLabel.getFont().deriveFont(Font.BOLD));
         checklistLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
