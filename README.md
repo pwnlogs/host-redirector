@@ -3,10 +3,11 @@
 Host Redirector is a lightweight Burp Suite extension designed to seamlessly reroute traffic from one host to another. This is particularly useful for security researchers and developers who need to test production-level configurations against development or staging environments.
 
 ## Key Features
-* __Target Decoupling:__ Redirect requests to a new destination IP or domain while keeping the original `Host` header.  
+* __Target Decoupling:__ Redirect request IP address and SNI (Subject Name Indication) while keeping the original `Host` header.  
 This allows you to test backend servers directly without breaking application logic that relies on the hostname.  
 This is also ideal for testing WAF bypasses, Virtual Hosting configurations, or Origin-Server direct access. 
   * You can optionally toggle "Update `Host` Header" if the destination requires it.
+* __Path Filter:__ Redirect requests selectively based on request path.
 * __HTTP/1.1 & HTTP/2 Support__
 * __Transparent Proxying:__ Works across all Burp tools (Proxy, Repeater, Intruder, etc.).  
 You can also choose to enable/disable specific tools.
@@ -21,6 +22,36 @@ This is a _'find \& replace'_ logic on the `Host` header value. Hence, your port
 
 ## Installation
 Simply download the extension, load it on your Burp Suite and enjoy!
+
+## Compare With Other Methods
+There are several other methods for changing the host of the request.
+Each method has its own purpose. Different methods are compared below:
+* Find \& Replace Host Header:  
+You could use the native match-replace feature in Burp Suite to change hostname.  
+
+|                    | Which hostname will the server see?    |
+|--------------------|----------------------------------------|
+| HTTP (Host Header) | :white_check_mark: Replaced Hostname   |
+| TLS (SNI)          | :x: Original Hostname                  |
+| TCP (IP Address)   | :white_check_mark: Original IP Address |
+
+* Change Hostname Resolution:  
+Another method is to change hostname resolution by editing `/etc/hosts` file.  
+This can also be done by _Hostname resolution overrides_ feature in Burp Suite.
+
+|                    | Which hostname will the server see?    |
+|--------------------|----------------------------------------|
+| HTTP (Host Header) | :x: Original Hostname                  |
+| TLS (SNI)          | :x: Original Hostname                  |
+| TCP (IP Address)   | :white_check_mark: Replaced IP Address |
+
+* Using Host Redirector
+
+|                    | Which hostname will the server see?             |
+|--------------------|-------------------------------------------------|
+| HTTP (Host Header) | :white_check_mark: Replaced Hostname (Optional) |
+| TLS (SNI)          | :white_check_mark: Replaced Hostname            |
+| TCP (IP Address)   | :white_check_mark: Replaced IP Address          |
 
 ## Example Use Case
 

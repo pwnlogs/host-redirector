@@ -70,11 +70,6 @@ public class Extension implements BurpExtension {
         // table
         String[] columns = {"Source Host / IP", "Target Host / IP", "Source Path (regex)"};
         Object[][] sampleData = {
-                {"sub1.dev.sbits.dev", "sub2.dev.sbits.dev", "/r1.*"},
-                {"sub2.dev.sbits.dev", "sub3.dev.sbits.dev", "/r2.*"},
-                {"sub3.dev.sbits.dev", "sub4.dev.sbits.dev", ""},
-                {"sub1.dev.sbits.dev", "sub4.dev.sbits.dev", ""},
-
                 {"prod.app.com", "dev.app.com", ""}
         };
 
@@ -210,12 +205,12 @@ public class Extension implements BurpExtension {
             Object value = tableModel.getValueAt(i, 0);
             String host;
             if (value == null) {
-                UiUtils.showError("Null value at Original Host of row " + rowCount);
+                UiUtils.showError("Source Host of row " + i + " is empty.");
                 return false;
             }
             host = value.toString();
             if (Utils.isNotValidDomainNorIP(host)) {
-                UiUtils.showError(host + " is not a valid domain.");
+                UiUtils.showError("Source Host of row " + i + " is not valid.");
                 return false;
             }
             srcHosts.add(host);
@@ -223,15 +218,13 @@ public class Extension implements BurpExtension {
             // destination host
             value = tableModel.getValueAt(i, 1);
             if (value == null) {
-                host = ""; // this match will be dropped
-            } else {
-                host = value.toString();
-                // either the host should be empty string - this will be dropped
-                // or the host should be a valid domain
-                if (!"".equals(host) && Utils.isNotValidDomainNorIP(host)) {
-                    UiUtils.showError(host + " is not a valid domain nor IP address.");
-                    return false;
-                }
+                UiUtils.showError("Target Host of row " + i + " is empty.");
+                return false;
+            }
+            host = value.toString();
+            if (Utils.isNotValidDomainNorIP(host)) {
+                UiUtils.showError("Target Host of row " + i + " is not valid.");
+                return false;
             }
             dstHosts.add(host);
 

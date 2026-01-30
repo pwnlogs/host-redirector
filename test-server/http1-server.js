@@ -90,7 +90,8 @@ const server = https.createServer(options, (req, res) => {
     </body>
     </html>
   `;
-    console.log(`\nSNI: ${sniHostname}\nHost header: ${hostHeader}\n`)
+    const fullUrl = new URL(req.url, `http://${req.headers.host}`);
+    console.log(`\nSNI        : ${sniHostname}\nHost header: ${hostHeader}\nURL        : ${fullUrl}`)
 
     res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
     res.end(htmlResponse);

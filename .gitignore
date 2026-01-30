@@ -45,3 +45,5 @@ bin/
 ### exclude test server
 test-server/cert.pem
 test-server/key.pem
+
+test-data.txt

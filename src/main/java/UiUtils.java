@@ -40,8 +40,8 @@ public class UiUtils {
 
     public static JPanel getHintText() {
         String[] tips = {
-                "If destination is empty, the request will be dropped",
-                "If path is empty, any path is matched",
+                "If a path is empty, any path is matched",
+                "Target host should be a valid hostname or IP address",
                 "If a request is made to a domain, Host Redirector will not match it to the associated IP address.",
                 "Rules are matched from the top to the bottom of the table."
         };
