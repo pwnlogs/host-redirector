@@ -46,4 +46,4 @@ bin/
 test-server/cert.pem
 test-server/key.pem
 
-test-data.txt
+test/

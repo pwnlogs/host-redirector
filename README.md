@@ -7,7 +7,7 @@ Host Redirector is a lightweight Burp Suite extension designed to seamlessly rer
 This allows you to test backend servers directly without breaking application logic that relies on the hostname.  
 This is also ideal for testing WAF bypasses, Virtual Hosting configurations, or Origin-Server direct access. 
   * You can optionally toggle "Update `Host` Header" if the destination requires it.
-* __Path Filter:__ Redirect requests selectively based on request path.
+* __Granular Routing:__ Redirect requests selectively based on request path. Match with regex.
 * __HTTP/1.1 & HTTP/2 Support__
 * __Transparent Proxying:__ Works across all Burp tools (Proxy, Repeater, Intruder, etc.).  
 You can also choose to enable/disable specific tools.
@@ -15,9 +15,10 @@ You can also choose to enable/disable specific tools.
 * __Dynamic Redirection:__ Map any source hostname to a destination hostname.
 
 ## How It Works
-When a request is captured by Burp Suite, the extension checks the destination host against your configured rules. If a match is found, the extension:
+Just before a request is sent out by Burp Suite, the extension checks the destination host against your configured rules. If a match is found, the extension:
 1. Changes the destination IP/domain of the socket.
-2. Rewrites the HTTP Host header to match the new destination (if opted).  
+2. Uses the new hostname as SNI (Subject Name Indicator) during TLS handshake.
+3. Rewrites the HTTP Host header to match the new destination (if opted).  
 This is a _'find \& replace'_ logic on the `Host` header value. Hence, your port number and any other payload you have on the `Host` header stays intact!
 
 ## Installation
@@ -25,9 +26,9 @@ Simply download the extension, load it on your Burp Suite and enjoy!
 
 ## Compare With Other Methods
 There are several other methods for changing the host of the request.
-Each method has its own purpose. Different methods are compared below:
+Different methods are compared below:
 * Find \& Replace Host Header:  
-You could use the native match-replace feature in Burp Suite to change hostname.  
+You could use the native match-replace feature in Burp Suite to change the hostname.  
 
 |                    | Which hostname will the server see?    |
 |--------------------|----------------------------------------|
@@ -62,4 +63,4 @@ If you want to test how your production session cookies behave on a QA environme
 3. Browse `https://prod.app.com` in your Burp-configured browser.
 4. Burp will automatically fetch data from `qa.app.com` while your browser still thinks it is communicating with production.
 
-![screenshot.png](screenshot.png)
+![screenshot.jpg](screenshot.jpg)
