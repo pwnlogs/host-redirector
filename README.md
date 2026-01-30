@@ -28,31 +28,31 @@ Simply download the extension, load it on your Burp Suite and enjoy!
 There are several other methods for changing the host of the request.
 Different methods are compared below:
 * Find \& Replace Host Header:  
-You could use the native match-replace feature in Burp Suite to change the hostname.  
+You could use the native _Match and Replace_ feature in Burp Suite to change the hostname.  
 
-|                    | Which hostname will the server see?    |
-|--------------------|----------------------------------------|
-| HTTP (Host Header) | :white_check_mark: Replaced Hostname   |
-| TLS (SNI)          | :x: Original Hostname                  |
-| TCP (IP Address)   | :white_check_mark: Original IP Address |
+|                    | Which hostname will the server see? |
+|--------------------|-------------------------------------|
+| HTTP (Host Header) | :white_check_mark: New Hostname     |
+| TLS (SNI)          | :x: Original Hostname               |
+| TCP (IP Address)   | :x: Original IP Address             |
 
 * Change Hostname Resolution:  
 Another method is to change hostname resolution by editing `/etc/hosts` file.  
 This can also be done by _Hostname resolution overrides_ feature in Burp Suite.
 
-|                    | Which hostname will the server see?    |
-|--------------------|----------------------------------------|
-| HTTP (Host Header) | :x: Original Hostname                  |
-| TLS (SNI)          | :x: Original Hostname                  |
-| TCP (IP Address)   | :white_check_mark: Replaced IP Address |
+|                    | Which hostname will the server see? |
+|--------------------|-------------------------------------|
+| HTTP (Host Header) | :x: Original Hostname               |
+| TLS (SNI)          | :x: Original Hostname               |
+| TCP (IP Address)   | :white_check_mark: New IP Address   |
 
 * Using Host Redirector
 
-|                    | Which hostname will the server see?             |
-|--------------------|-------------------------------------------------|
-| HTTP (Host Header) | :white_check_mark: Replaced Hostname (Optional) |
-| TLS (SNI)          | :white_check_mark: Replaced Hostname            |
-| TCP (IP Address)   | :white_check_mark: Replaced IP Address          |
+|                    | Which hostname will the server see?        |
+|--------------------|--------------------------------------------|
+| HTTP (Host Header) | :white_check_mark: New Hostname (Optional) |
+| TLS (SNI)          | :white_check_mark: New Hostname            |
+| TCP (IP Address)   | :white_check_mark: New IP Address          |
 
 ## Example Use Case
 
